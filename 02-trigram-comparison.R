@@ -1,5 +1,6 @@
 # libraries
 library(tidyverse)
+library(ggthemes)
 
 # read data in
 emma_book <- read_tsv("processed-data/emma-book.tsv") %>% 
@@ -19,3 +20,61 @@ emma_script <- emma_script %>%
 # combine both corpora into one dataframe
 emma_corpora <- bind_rows(emma_book, emma_script) %>% 
   rename(text = ".")
+
+# count how many paragraphs per corpora
+emma_corpora %>% 
+  count(source)
+
+#### TOKENIZATION ####
+library(tidytext)
+# tokenize corpora
+tokenized_emma <- emma_corpora %>% 
+  unnest_tokens(word, text)
+
+# size of corpora
+tokenized_emma %>% 
+  count(source)
+
+# tokenize corpora by sentence
+emma_sentences <- emma_corpora %>% 
+  unnest_tokens(sentence, text, token = "sentences")
+
+# count number of sentences per source
+emma_sentences %>% 
+  count(source)
+
+# count number of sentences per paragraph
+emma_sentences %>% 
+  count(source, paragraph) %>% 
+  group_by(source) %>% 
+  summarize(mean_sentence_count = mean(n),
+            sd_sentence_count = sd(n))
+
+# unnest trigrams
+emma_trigrams <- emma_sentences %>% 
+  unnest_tokens(ngrams, sentence, token = "ngrams", n = 3)
+
+# count how many of each trigram per corpus
+emma_trigrams %>% 
+  filter(!is.na(ngrams)) %>% 
+  count(source, ngrams, sort = TRUE) %>% 
+  group_by(source) %>% 
+  slice_max(order_by = n, n = 15) %>% 
+  ggplot(aes(y = reorder_within(ngrams, n, source),
+             x = n,
+             fill = source)) +
+  geom_col() +
+  facet_wrap(~source, scales = "free") +
+  scale_y_reordered() +
+  theme_linedraw() +
+  labs(y = "",
+       x = "raw frequency",
+       title = " Top 15 Most Frequent Trigrams",
+       subtitle = "Across Corpora") +
+  theme(legend.position = "none") +
+  #scale_fill_manual(values = c("darkslategray4", "lightgoldenrod3"))
+  scale_fill_colorblind()
+
+
+
+
