@@ -75,6 +75,13 @@ emma_trigrams %>%
   #scale_fill_manual(values = c("darkslategray4", "lightgoldenrod3"))
   scale_fill_colorblind()
 
+ggsave("images/most-freq-trigrams.png")
 
+most_frequent_trigrams <- emma_trigrams %>% 
+  filter(!is.na(ngrams)) %>% 
+  count(source, ngrams, sort = TRUE) %>% 
+  group_by(source) %>% 
+  slice_max(order_by = n, n = 15)
 
+write_csv(most_frequent_trigrams, "processed-data/most-freq-trigrams.csv")
 
