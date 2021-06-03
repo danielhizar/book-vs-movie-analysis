@@ -27,12 +27,20 @@ emma_corpora %>%
 
 #### TOKENIZATION ####
 library(tidytext)
+# remove period after  title
+emma_corpora <- emma_corpora %>% 
+  mutate(text_clean = gsub("Mr\\.|", "Mr", text))
 # tokenize corpora
 tokenized_emma <- emma_corpora %>% 
   unnest_tokens(word, text)
 
-# size of corpora
+# size of corpora (number of tokens)
 tokenized_emma %>% 
+  count(source)
+
+# number of types
+tokenized_emma %>% 
+  distinct(source, word) %>% 
   count(source)
 
 # tokenize corpora by sentence
